@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Семейный бюджет</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Бюджет">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F6F2EB">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Боковая навигация и сетка карточек на компьютере; нижняя панель и кнопка «+» на телефоне */
+:root{
+  --bg:#F6F2EB; --surface:#FFFDF9; --sunk:#EEE9E0; --line:#E3DCD0;
+  --fg:#2B2722; --muted:#7D756A; --accent:#2F5D50; --accent-ink:#FFFDF9; --accent-soft:#E2ECE7;
+  --laura:#B9584D; --laura-soft:#F6E3DF; --mama:#8A6A3F; --mama-soft:#F1E7D7;
+  --good:#3E7B5B; --bad:#B9584D; --warn-soft:#FBF0D9; --warn:#8A5A12;
+  --shadow:0 1px 2px rgba(60,45,25,.06),0 6px 20px rgba(60,45,25,.05);
+  --display:"Unbounded","Onest",system-ui,sans-serif; --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1B1915; --surface:#24211C; --sunk:#2D2A24; --line:#3A362F;
+  --fg:#F1ECE3; --muted:#A39B8E; --accent:#7FB8A4; --accent-ink:#13201B; --accent-soft:#24372F;
+  --laura:#E08A7E; --laura-soft:#3B2724; --mama:#D2AE78; --mama-soft:#38301F; --good:#7FC29C; --bad:#E08A7E;
+  --warn-soft:#3A3020; --warn:#E3B66A; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1B1915; --surface:#24211C; --sunk:#2D2A24; --line:#3A362F;
+  --fg:#F1ECE3; --muted:#A39B8E; --accent:#7FB8A4; --accent-ink:#13201B; --accent-soft:#24372F;
+  --laura:#E08A7E; --laura-soft:#3B2724; --mama:#D2AE78; --mama-soft:#38301F; --good:#7FC29C; --bad:#E08A7E;
+  --warn-soft:#3A3020; --warn:#E3B66A; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+.num{font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+a{color:var(--accent)}
+
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;padding:28px 18px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--line)}
+.brand{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:-.01em;padding-left:10px}
+.brand small{display:block;font-family:var(--body);font-weight:400;font-size:12px;color:var(--muted);letter-spacing:0;margin-top:2px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:12px;border:0;background:none;padding:10px 12px;border-radius:12px;color:var(--muted);text-align:left;font-weight:500}
+.nav svg{width:19px;height:19px;flex:none}
+.nav button:hover{background:var(--sunk);color:var(--fg)}
+.nav button[aria-current="page"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.who{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;font-size:13px;color:var(--muted)}
+.ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:13px}
+.ava.L{background:var(--laura-soft);color:var(--laura)} .ava.M{background:var(--mama-soft);color:var(--mama)}
+
+main{min-width:0;padding:28px max(28px,env(safe-area-inset-right)) 60px max(28px,env(safe-area-inset-left))}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top h1{font-family:var(--display);font-weight:600;font-size:26px;letter-spacing:-.02em;margin:0}
+.spacer{flex:1}
+.month{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.month button{border:0;background:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.month button:hover{background:var(--sunk);color:var(--fg)}
+.month span{min-width:124px;text-align:center;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:999px;font-weight:600;white-space:nowrap}
+.btn:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.5;cursor:default;filter:none}
+.btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.small{padding:7px 13px;font-size:14px}
+.link{border:0;background:none;color:var(--accent);font-weight:600;padding:0}
+.note{font-size:13px;color:var(--muted);background:var(--sunk);border-radius:12px;padding:10px 14px}
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px;flex-wrap:wrap}
+
+.card{background:var(--surface);border-radius:20px;padding:20px 22px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:16px;margin:0 0 14px;font-weight:600;display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h2 span{font-size:13px;color:var(--muted);font-weight:400}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+.balance{display:flex;flex-direction:column;gap:12px;background:var(--accent);color:var(--accent-ink)}
+.balance .label{color:inherit;opacity:.75}
+.balance .big{font-family:var(--display);font-size:clamp(30px,4.4vw,44px);font-weight:600;letter-spacing:-.02em;line-height:1}
+.balance .dir{font-size:17px;font-weight:500}
+.balance .formula{font-size:13px;opacity:.85;border-top:1px solid color-mix(in srgb,var(--accent-ink) 25%,transparent);padding-top:12px}
+.balance .btn{background:var(--accent-ink);color:var(--accent);align-self:flex-start}
+.bigsum{font-family:var(--display);font-size:32px;font-weight:600;letter-spacing:-.02em;margin-top:8px}
+.split{display:flex;height:10px;border-radius:99px;overflow:hidden;margin-top:18px;background:var(--sunk)}
+.split i{display:block}
+.legend{display:flex;gap:16px;margin-top:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.legend b{color:var(--fg);font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi .v{font-size:22px;font-weight:600;margin-top:6px}
+.kpi .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.tag{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;margin-bottom:8px}
+.tL{background:var(--laura-soft);color:var(--laura)} .tM{background:var(--mama-soft);color:var(--mama)} .tN{background:var(--sunk);color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+
+.cats{display:flex;flex-direction:column;gap:12px}
+.cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}
+.cat .chip{justify-self:start}
+.cat .bar{grid-column:1/-1;height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.cat .bar i{display:block;height:100%;border-radius:99px}
+.meta{font-size:13px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:3px 10px 3px 8px;border-radius:99px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+
+.ops{display:flex;flex-direction:column}
+.op{display:block;padding:11px 0;border:0;border-top:1px solid var(--line);width:100%;background:none;text-align:left}
+.opg{display:grid;grid-template-columns:46px minmax(0,1fr) max-content;gap:12px;align-items:center}
+.op:first-child{border-top:0}
+.op:hover .t{color:var(--accent)}
+.op .d{font-size:12px;color:var(--muted);text-align:center;line-height:1.15}
+.op .d b{display:block;font-size:17px;color:var(--fg);font-weight:600}
+.op .t{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.op .s{display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap}
+.op .r{text-align:right;white-space:nowrap}
+.op .r .a{font-weight:600}
+.op .r .opx{font-size:12px;color:var(--muted)}
+.op.neg .a{color:var(--good)}
+.empty{color:var(--muted);font-size:14px;padding:12px 0}
+.diff{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center;font-size:14px}
+.up{color:var(--bad)} .down{color:var(--good)}
+
+.filters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.filters .q{grid-column:span 2}
+.inp,select.inp{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+textarea.inp{resize:vertical;min-height:64px}
+.sum{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+.sum b{color:var(--fg)}
+
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--line)}
+.tbl td.r,.tbl th.r{text-align:right}
+.tbl tr:last-child td{border-bottom:0}
+
+.catcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.catcard{display:flex;flex-direction:column;gap:8px;text-align:left;border:0;background:var(--surface);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+.catcard:hover{box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+.catcard .rule{font-size:14px}
+.list{display:flex;flex-direction:column}
+.list .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.list .row:first-child{border-top:0}
+.hist{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.hist .h{padding:9px 0;border-top:1px solid var(--line)}
+.hist .h:first-child{border-top:0}
+.hist .when{font-size:12px;color:var(--muted)}
+
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--body)}
+.chart .gl{stroke:var(--line)}
+
+/* Лист (форма) */
+.scrim{position:fixed;inset:0;background:rgba(30,24,16,.36);z-index:40;display:flex;justify-content:flex-end}
+.sheet{background:var(--bg);width:min(540px,100%);height:100%;overflow:auto;padding:22px max(22px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) 22px;display:flex;flex-direction:column;gap:16px;animation:slide .2s ease-out}
+@keyframes slide{from{transform:translateX(24px);opacity:.6}}
+.sheet header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheet h3{font-family:var(--display);font-weight:600;font-size:19px;margin:0}
+.x{border:0;background:var(--sunk);width:34px;height:34px;border-radius:50%;flex:none}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.lab{font-size:13px;color:var(--muted);font-weight:500}
+.amount{font-size:26px;font-weight:600}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;background:var(--sunk);border-radius:12px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg button{flex:1;border:0;background:none;padding:9px 8px;border-radius:9px;font-weight:500;color:var(--muted);min-width:44px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.picker{display:flex;flex-wrap:wrap;gap:6px}
+.picker button{border:1px solid var(--line);background:var(--surface)}
+.picker button[aria-pressed="true"]{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.hint{font-size:12px;color:var(--muted)}
+.box{background:var(--surface);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.box table{width:100%;border-collapse:collapse;font-size:14px}
+.box td{padding:5px 0;border-bottom:1px dashed var(--line);vertical-align:top}
+.box td:last-child{text-align:right;white-space:nowrap;padding-left:10px}
+.box tr:last-child td{border-bottom:0}
+.res{border-radius:12px;padding:12px 14px;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.err{color:var(--bad);font-size:14px}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:12px 14px;font-size:14px;display:flex;flex-direction:column;gap:10px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 110px 132px;gap:8px;align-items:center}
+.prow label{display:flex;gap:8px;align-items:center;min-width:0}
+.prow input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.prow .inp{padding:8px 10px}
+.check{display:flex;gap:10px;align-items:center;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--fg)}
+input[type=color]{width:44px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.save{border:0;background:var(--accent);color:var(--accent-ink);padding:14px;border-radius:14px;font-weight:600;font-size:16px}
+.save:disabled{opacity:.5;cursor:default}
+
+.loading{display:grid;place-items:center;min-height:60vh;color:var(--muted);text-align:center;padding:20px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 12px 10px 16px;border-radius:12px;font-size:14px;z-index:60;display:flex;gap:14px;align-items:center;max-width:calc(100% - 32px)}
+.toast button{border:0;background:none;color:var(--bg);font-weight:700;text-decoration:underline;padding:2px 4px}
+@media (min-width:761px){.toast{bottom:28px}}
+
+.tabbar,.fab{display:none}
+@media (max-width:1000px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .q{grid-column:span 2}}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  main{padding:16px max(16px,env(safe-area-inset-right)) calc(100px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  .hero{grid-template-columns:1fr}
+  .top h1{font-size:21px}
+  .top .btn.add{display:none}
+  .kpis{gap:10px}.card{padding:16px;border-radius:18px}
+  .kpi .v{font-size:18px}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));z-index:30;justify-content:space-around}
+  .tabbar button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 2px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tabbar svg{width:22px;height:22px}
+  .tabbar button[aria-current="page"]{color:var(--accent)}
+  .fab{display:grid;place-items:center;position:fixed;right:calc(18px + env(safe-area-inset-right));bottom:calc(76px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 18px rgba(47,93,80,.35);z-index:31}
+  .row2{grid-template-columns:1fr}
+  .prow{grid-template-columns:minmax(0,1fr) 96px;}
+  .prow select{grid-column:1/-1}
+  .month span{min-width:104px}
+}
+.login{position:fixed;inset:0;z-index:70;background:var(--bg);display:grid;place-items:center;overflow:auto;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.login-card{width:min(380px,100%);display:flex;flex-direction:column;gap:16px;text-align:left}
+.login-card img{border-radius:20px;box-shadow:var(--shadow);align-self:center}
+.login-card h1{font-family:var(--display);font-weight:600;font-size:22px;margin:0;text-align:center}
+.login-card .hint{text-align:center;margin:0}
+main{padding-top:max(28px,calc(env(safe-area-inset-top) + 12px))}
+@media (max-width:760px){main{padding-top:max(16px,calc(env(safe-area-inset-top) + 8px))}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Семейный бюджет<small>Лаура и мама</small></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="who" id="who"></div>
+  </aside>
+  <main><div class="wrap" id="view"><div class="loading">Загружаем данные…</div></div></main>
+</div>
+<nav class="tabbar" id="tabbar"></nav>
+<button class="fab" id="fab" data-act="add-expense" aria-label="Добавить расход" hidden><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<div id="sheetRoot"></div>
+<div id="toastRoot"></div>
+<div id="login" class="login" hidden></div>
+
+<script>
+/* Финансовое ядро: тот же код, что выполняется на сервере */
+function allocate_(amount, weights) {
+  var total = 0, i;
+  for (i = 0; i < weights.length; i++) total += weights[i];
+  if (!(total > 0)) throw new Error('Сумма долей должна быть больше нуля');
+  var sign = amount < 0 ? -1 : 1, abs = Math.abs(amount), base = [], sum = 0, order = [];
+  for (i = 0; i < weights.length; i++) {
+    base[i] = Math.floor(abs * weights[i] / total);
+    sum += base[i];
+    order.push({ i: i, r: (abs * weights[i]) % total });
+  }
+  order.sort(function (a, b) { return b.r - a.r || a.i - b.i; });
+  for (i = 0; i < abs - sum; i++) base[order[i].i] += 1;
+  return base.map(function (v) { return v * sign; });
+}
+function computeSplit_(amount, paidBy, mode, parts) {
+  if (typeof amount !== 'number' || Math.floor(amount) !== amount || amount === 0) throw new Error('Укажите сумму');
+  if (Math.abs(amount) > 100000000000) throw new Error('Слишком большая сумма');
+  if (paidBy !== 'L' && paidBy !== 'M') throw new Error('Укажите, кто оплатил');
+  if (!parts || !parts.length) throw new Error('Выберите хотя бы одного участника');
+  var seen = {};
+  parts.forEach(function (p) {
+    if (seen[p.m]) throw new Error('Участник указан дважды');
+    seen[p.m] = 1;
+  });
+  var rank = function (p) { return p.m === 'L' ? 2 : p.m === 'M' ? 0 : 1; };
+  var ps = parts.slice().sort(function (a, b) { return rank(a) - rank(b); });
+  var amounts;
+  if (mode === 'equal') {
+    amounts = allocate_(amount, ps.map(function () { return 1; }));
+  } else if (mode === 'percent') {
+    var bp = 0;
+    ps.forEach(function (p) {
+      if (!(p.bp > 0)) throw new Error('У каждого участника процент должен быть больше нуля');
+      bp += p.bp;
+    });
+    if (bp !== 10000) throw new Error('Сумма процентов должна быть 100%, сейчас ' + (bp / 100).toString().replace('.', ',') + '%');
+    amounts = allocate_(amount, ps.map(function (p) { return p.bp; }));
+  } else if (mode === 'fixed') {
+    var s = 0;
+    amounts = ps.map(function (p) {
+      if (typeof p.kop !== 'number' || Math.floor(p.kop) !== p.kop) throw new Error('Укажите сумму для каждого участника');
+      s += p.kop;
+      return p.kop;
+    });
+    if (s !== amount) throw new Error('Сумма долей (' + (s / 100).toFixed(2).replace('.', ',') + ' ₽) не равна сумме расхода (' + (amount / 100).toFixed(2).replace('.', ',') + ' ₽)');
+  } else {
+    throw new Error('Неизвестный способ распределения');
+  }
+  var respL = 0;
+  var shares = ps.map(function (p, i) {
+    var resp = p.resp || (p.m === 'L' ? 'L' : 'M');
+    if (resp !== 'L' && resp !== 'M') throw new Error('Отвечать за долю может только Лаура или мама');
+    if (resp === 'L') respL += amounts[i];
+    var sh = { m: p.m, kop: amounts[i], resp: resp };
+    if (mode === 'percent') sh.bp = p.bp;
+    return sh;
+  });
+  var respM = amount - respL;
+  return {
+    shares: shares, respL: respL, respM: respM,
+    // Положительное значение — Лаура должна маме, отрицательное — мама должна Лауре.
+    delta: paidBy === 'M' ? respL : -respM
+  };
+}
+function settle_(expenses, transfers) {
+  var r = { total: 0, count: expenses.length, paidL: 0, paidM: 0, respL: 0, respM: 0, lOwesM: 0, mOwesL: 0, tLM: 0, tML: 0 };
+  expenses.forEach(function (e) {
+    r.total += e.amount;
+    if (e.paidBy === 'L') { r.paidL += e.amount; r.mOwesL += e.respM; } else { r.paidM += e.amount; r.lOwesM += e.respL; }
+    r.respL += e.respL;
+    r.respM += e.respM;
+  });
+  transfers.forEach(function (t) { if (t.from === 'L') r.tLM += t.amount; else r.tML += t.amount; });
+  r.net = r.lOwesM - r.mOwesL; // до переводов; > 0 — Лаура должна маме
+  r.balance = r.net - r.tLM + r.tML; // остаток после переводов
+  // Сколько переводов пошло на погашение долга в нужную сторону.
+  r.compensated = r.net >= 0 ? r.tLM : r.tML;
+  return r;
+}
+function roundRub_(kop) {
+  var s = kop < 0 ? -1 : 1;
+  return s * Math.floor((Math.abs(kop) + 50) / 100) * 100;
+}
+</script>
+<script>
+'use strict';
+/* ================= Состояние и связь с сервером ================= */
+const now = new Date();
+const S = {
+  d: null, view: 'overview', ym: { y: now.getFullYear(), m: now.getMonth() }, year: now.getFullYear(), scope: 'month',
+  f: { month: 'cur', cat: '', payer: '', min: '', max: '', q: '', sort: 'date-desc' }, newData: false
+};
+const API_URL = String(window.BUDGET_API || '');
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }, del: k => { try { localStorage.removeItem(k); } catch (e) {} } };
+let TOKEN = store.get('budget_token');
+async function call(fn, args, token) {
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL) && !/^http:\/\/localhost/.test(API_URL)) {
+    throw new Error('В файле config.js не указана ссылка на Google Apps Script (она заканчивается на /exec).');
+  }
+  let r, j;
+  try { r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn, args, token }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } }); }
+  catch (e) { throw new Error('Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.'); }
+  try { j = await r.json(); } catch (e) { throw new Error('Google ответил не так, как ожидалось. Проверьте, что в развертывании выбран доступ «Все».'); }
+  return j;
+}
+async function api(fn, ...args) {
+  const j = await call(fn, args, TOKEN);
+  if (j.auth) { TOKEN = null; store.del('budget_token'); showLogin(j.error); throw new Error(j.error); }
+  if (!j.ok) throw new Error(j.error);
+  return j.value;
+}
+function showLogin(msg) {
+  closeSheet();
+  const last = store.get('budget_who') || 'L';
+  document.getElementById('login').innerHTML = `<form class="login-card" id="login-form" autocomplete="on">
+    <img src="apple-touch-icon.png" alt="" width="84" height="84">
+    <h1>Семейный бюджет</h1>
+    <div class="field"><span class="lab">Кто входит</span><div class="seg" id="lg-who">${['L', 'M'].map(p => `<button type="button" data-who="${p}" aria-pressed="${p === last}">${p === 'L' ? 'Лаура' : 'Мама'}</button>`).join('')}</div></div>
+    <div class="field"><label for="lg-pwd">Пароль</label><input class="inp" type="password" id="lg-pwd" autocomplete="current-password" required></div>
+    <div id="lg-msg">${msg && msg !== 'Войдите, чтобы открыть бюджет.' ? `<div class="err">${esc(msg)}</div>` : ''}</div>
+    <button class="save" id="lg-go" type="submit">Войти</button>
+    <p class="hint">На этом устройстве вход запомнится, вводить пароль каждый раз не нужно.</p></form>`;
+  document.getElementById('login').hidden = false;
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-who]');
+  if (b) { document.querySelectorAll('[data-who]').forEach(x => x.setAttribute('aria-pressed', x === b)); }
+});
+document.addEventListener('submit', async ev => {
+  if (ev.target.id !== 'login-form') return;
+  ev.preventDefault();
+  const who = (document.querySelector('[data-who][aria-pressed="true"]') || {}).dataset.who || 'L';
+  const btn = document.getElementById('lg-go'), msg = document.getElementById('lg-msg');
+  btn.disabled = true; btn.textContent = 'Входим…'; msg.innerHTML = '';
+  try {
+    const j = await call('login', [who, document.getElementById('lg-pwd').value]);
+    if (!j.ok) throw new Error(j.error);
+    TOKEN = j.value.token; store.set('budget_token', TOKEN); store.set('budget_who', who);
+    document.getElementById('login').hidden = true;
+    S.view = 'overview';
+    start();
+  } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; btn.disabled = false; btn.textContent = 'Войти'; }
+});
+function openPasswordForm() {
+  openSheet(`${head('Сменить пароль')}
+    <div class="field"><label for="pw-old">Текущий пароль</label><input class="inp" type="password" id="pw-old" autocomplete="current-password"></div>
+    <div class="field"><label for="pw-new">Новый пароль, не короче 6 символов</label><input class="inp" type="password" id="pw-new" autocomplete="new-password"></div>
+    <div class="note">После смены пароля на ваших других устройствах нужно будет войти заново.</div>
+    <div id="pw-msg"></div><button class="save" id="pw-save">Сохранить пароль</button>`, 'Пароль');
+}
+document.addEventListener('click', async ev => {
+  const t = ev.target;
+  if (t.closest('[data-act="logout"]')) {
+    try { await call('logout', [], TOKEN); } catch (e) {}
+    TOKEN = null; store.del('budget_token'); S.d = null;
+    document.getElementById('view').innerHTML = ''; showLogin(); return;
+  }
+  if (t.closest('[data-act="change-pwd"]')) return openPasswordForm();
+  const save = t.closest('#pw-save');
+  if (save) {
+    const msg = sheetEl.querySelector('#pw-msg');
+    try {
+      const v = await run(save, () => api('changePassword', sheetEl.querySelector('#pw-old').value, sheetEl.querySelector('#pw-new').value));
+      TOKEN = v.token; store.set('budget_token', TOKEN); closeSheet(); toast('Пароль изменён');
+    } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+  }
+});
+function setData(d) { S.d = d; S.newData = false; render(); }
+
+/* ================= Справочники и форматирование ================= */
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+const MONTHS_DAT = ['январю', 'февралю', 'марту', 'апрелю', 'маю', 'июню', 'июлю', 'августу', 'сентябрю', 'октябрю', 'ноябрю', 'декабрю'];
+const MON_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+const PALETTE = ['#5E7FBF', '#9C79C9', '#6B9C58', '#6E4E9E', '#C0705F', '#3F8F8A', '#C08A2E', '#6F7682', '#B5564B', '#4A9BC4', '#C2678F', '#7A8F3A'];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const grp = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const rub = k => { k = roundRub_(k); return (k < 0 ? '−' : '') + grp(Math.abs(k) / 100) + ' ₽'; };
+const rubExact = k => { const a = Math.abs(k); return (k < 0 ? '−' : '') + grp(Math.floor(a / 100)) + ',' + String(a % 100).padStart(2, '0') + ' ₽'; };
+const shortRub = k => { const r = k / 100; return r >= 1e6 ? (r / 1e6).toFixed(1).replace('.', ',') + ' млн' : r >= 1000 ? Math.round(r / 1000) + ' тыс' : String(Math.round(r)); };
+function parseRub(s) {
+  s = String(s || '').replace(/[\s  ₽]/g, '').replace(',', '.');
+  if (!/^\d+(\.\d{0,2})?$/.test(s)) return NaN;
+  const [a, b = ''] = s.split('.');
+  return Number(a) * 100 + Number((b + '00').slice(0, 2));
+}
+const kopInput = k => { const a = Math.abs(k); return a % 100 ? (a / 100).toFixed(2).replace('.', ',') : String(a / 100); };
+const ymKey = ym => ym.y + '-' + String(ym.m + 1).padStart(2, '0');
+const ymLabel = ym => MONTHS[ym.m] + ' ' + ym.y;
+const ymOf = d => ({ y: +d.slice(0, 4), m: +d.slice(5, 7) - 1 });
+const prevYm = ym => ym.m === 0 ? { y: ym.y - 1, m: 11 } : { y: ym.y, m: ym.m - 1 };
+const nextYm = ym => ym.m === 11 ? { y: ym.y + 1, m: 0 } : { y: ym.y, m: ym.m + 1 };
+const dmy = d => d.split('-').reverse().join('.');
+const dShort = d => +d.slice(8, 10) + ' ' + MON[+d.slice(5, 7) - 1];
+const todayIso = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+const payerName = p => p === 'L' ? 'Лаура' : 'Мама';
+const payerTo = p => p === 'L' ? 'Лауре' : 'маме';
+const userName = email => { const u = (S.d.users || []).find(x => x.email === email); return u ? payerName(u.payer) : email; };
+const member = id => S.d.members.find(m => m.id === id) || { id, name: id };
+const activeMembers = () => S.d.members.filter(m => !m.archived);
+const catById = id => S.d.categories.find(c => c.id === id);
+const catOf = e => catById(e.categoryId) || { name: e.categoryName, color: '#8A8F99', archived: true };
+const chip = c => `<span class="chip" style="color:${esc(c.color)};background:color-mix(in srgb,${esc(c.color)} 13%,transparent)">${esc(c.name)}</span>`;
+const exps = () => S.d.expenses.filter(e => !e.deleted);
+const trs = () => S.d.transfers.filter(t => !t.deleted);
+const inYm = (d, ym) => d.slice(0, 7) === ymKey(ym);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+function debtText(bal) { return bal > 0 ? 'Лаура должна маме' : bal < 0 ? 'Мама должна Лауре' : 'Долгов нет'; }
+function opDebt(e) {
+  if (e.paidBy === 'M') return e.respL ? 'Лаура → маме ' + rub(e.respL) : 'без долга';
+  return e.respM ? 'Мама → Лауре ' + rub(e.respM) : 'без долга';
+}
+
+/* ================= Навигация ================= */
+const ICON = {
+  overview: '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 7h6V4h-6z"/>',
+  expenses: '<path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 9h6M9 13h4"/>',
+  settle: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  analytics: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  categories: '<circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+};
+const SECTIONS = [['overview', 'Обзор'], ['expenses', 'Расходы'], ['settle', 'Взаиморасчёты'], ['analytics', 'Аналитика'], ['categories', 'Категории'], ['settings', 'Настройки']];
+const svgI = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+const plus = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+function renderNav() {
+  const cur = k => k === S.view ? 'aria-current="page"' : '';
+  document.getElementById('nav').innerHTML = SECTIONS.map(([k, l]) => `<button data-go="${k}" ${cur(k)}>${svgI(k)}${l}</button>`).join('');
+  const tabs = [['overview', 'Обзор'], ['expenses', 'Расходы'], ['settle', 'Расчёты'], ['analytics', 'Аналитика']];
+  const inMore = S.view === 'categories' || S.view === 'settings';
+  document.getElementById('tabbar').innerHTML = tabs.map(([k, l]) => `<button data-go="${k}" ${cur(k)}>${svgI(k)}${l}</button>`).join('') +
+    `<button data-act="more" ${inMore ? 'aria-current="page"' : ''}>${svgI('more')}Ещё</button>`;
+  const me = S.d.me;
+  document.getElementById('who').innerHTML = `<span class="ava ${me.payer}">${payerName(me.payer)[0]}</span><span>${payerName(me.payer)}<br><span class="hint">${esc(me.email)}</span></span>`;
+  document.getElementById('fab').hidden = false;
+}
+function monthSwitcher() {
+  return `<div class="month"><button data-act="prev-month" aria-label="Предыдущий месяц"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><span>${ymLabel(S.ym)}</span><button data-act="next-month" aria-label="Следующий месяц"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button></div>`;
+}
+function newDataBanner() {
+  return S.newData ? `<div class="banner"><span>Вторая из вас внесла изменения.</span><button class="btn small ghost" data-act="reload">Обновить</button></div>` : '';
+}
+
+/* ================= Обзор ================= */
+function monthStats(ym) {
+  const list = exps().filter(e => inYm(e.date, ym)), tr = trs().filter(t => inYm(t.date, ym));
+  return { list, tr, s: settle_(list, tr) };
+}
+function balanceCard(s, ym, withButton) {
+  const exactNote = s.balance % 100 ? `. Округлено до рубля, точно ${rubExact(Math.abs(s.balance))}` : '';
+  return `<section class="card balance">
+    <div class="label">Взаиморасчёт · ${ymLabel(ym).toLowerCase()}</div>
+    <div class="dir">${debtText(roundRub_(s.balance))}</div>
+    <div class="big num">${rub(Math.abs(s.balance))}</div>
+    <div class="formula num">Доля Лауры ${rub(s.respL)} − оплатила Лаура ${rub(s.paidL)}${s.tLM || s.tML ? `, переводы: Лаура → маме ${rub(s.tLM)}, мама → Лауре ${rub(s.tML)}` : ''}${exactNote}</div>
+    ${withButton ? '<button class="btn small" data-act="add-transfer">Записать перевод</button>' : ''}
+  </section>`;
+}
+function kpiCards(s) {
+  return `<div class="kpis">
+    <section class="card kpi"><span class="tag tL">Лаура</span><div class="label">Оплатила</div><div class="v num">${rub(s.paidL)}</div><div class="sub">своими деньгами</div></section>
+    <section class="card kpi"><span class="tag tM">Мама</span><div class="label">Оплатила</div><div class="v num">${rub(s.paidM)}</div><div class="sub">своими деньгами</div></section>
+    <section class="card kpi"><span class="tag tL">Лаура</span><div class="label">Доля в расходах</div><div class="v num">${rub(s.respL)}</div><div class="sub">её часть общих трат</div></section>
+    <section class="card kpi"><span class="tag tM">Мама</span><div class="label">Доля в расходах</div><div class="v num">${rub(s.respM)}</div><div class="sub">своя часть и части семьи</div></section>
+  </div>`;
+}
+function opRow(e) {
+  const c = catOf(e);
+  return `<button class="op${e.amount < 0 ? ' neg' : ''}" data-open-exp="${esc(e.id)}"><div class="opg"><div class="d num"><b>${+e.date.slice(8, 10)}</b>${MON[+e.date.slice(5, 7) - 1]}</div>
+    <div style="min-width:0"><div class="t">${esc(e.title)}</div><div class="s">${chip(c)}<span class="hint">платила ${payerName(e.paidBy).toLowerCase()}</span></div></div>
+    <div class="r"><div class="a num">${rub(e.amount)}</div><div class="opx num">${opDebt(e)}</div></div></div></button>`;
+}
+function trRow(t) {
+  return `<button class="op" data-open-tr="${esc(t.id)}"><div class="opg"><div class="d num"><b>${+t.date.slice(8, 10)}</b>${MON[+t.date.slice(5, 7) - 1]}</div>
+    <div style="min-width:0"><div class="t">${payerName(t.from)} → ${payerTo(t.to)}</div><div class="s"><span class="hint">${esc(t.comment || 'перевод')}</span></div></div>
+    <div class="r"><div class="a num">${rub(t.amount)}</div></div></div></button>`;
+}
+function byCategory(list) {
+  const map = {};
+  list.forEach(e => { map[e.categoryId] = (map[e.categoryId] || 0) + e.amount; });
+  return Object.keys(map).map(id => ({ c: catById(id) || catOf(list.find(e => e.categoryId === id)), id, sum: map[id] })).sort((a, b) => b.sum - a.sum);
+}
+function viewOverview() {
+  const { list, tr, s } = monthStats(S.ym);
+  const cats = byCategory(list), max = cats.length ? Math.max(...cats.map(x => x.sum)) : 1;
+  const recent = list.slice().sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 7);
+  const pL = s.total > 0 ? Math.round(s.paidL / s.total * 100) : 0;
+  const pm = monthStats(prevYm(S.ym));
+  let cmp;
+  if (!pm.list.length) cmp = `<div class="empty">За ${MONTHS[prevYm(S.ym).m].toLowerCase()} данных нет, сравнивать пока не с чем.</div>`;
+  else {
+    const prevMap = {}; byCategory(pm.list).forEach(x => prevMap[x.id] = x);
+    const ids = new Set([...cats.map(x => x.id), ...Object.keys(prevMap)]);
+    const rows = [...ids].map(id => { const cur = cats.find(x => x.id === id); const pr = prevMap[id]; return { c: (cur || pr).c, cur: cur ? cur.sum : 0, prev: pr ? pr.sum : 0 }; })
+      .sort((a, b) => Math.abs(b.cur - b.prev) - Math.abs(a.cur - a.prev)).slice(0, 6);
+    const d = s.total - pm.s.total;
+    cmp = `<div class="sum" style="margin-bottom:12px"><span>${MONTHS[prevYm(S.ym).m]}: <b class="num">${rub(pm.s.total)}</b></span><span class="num ${d > 0 ? 'up' : 'down'}">${d > 0 ? '+' : d < 0 ? '−' : ''}${rub(Math.abs(d))}${pm.s.total ? ' (' + (d > 0 ? '+' : '') + Math.round(d / pm.s.total * 100) + '%)' : ''}</span></div>
+      <div class="diff">${rows.map(r => { const dd = r.cur - r.prev; return `${chip(r.c)}<span class="num meta">${rub(r.prev)} → ${rub(r.cur)}</span><span class="num ${dd > 0 ? 'up' : 'down'}">${dd > 0 ? '+' : dd < 0 ? '−' : ''}${rub(Math.abs(dd))}</span>`; }).join('')}</div>`;
+  }
+  return `
+  <div class="top"><h1>Обзор</h1>${monthSwitcher()}<span class="spacer"></span><button class="btn add" data-act="add-expense">${plus}Добавить расход</button></div>
+  ${newDataBanner()}
+  <div class="hero">${balanceCard(s, S.ym, true)}
+    <section class="card"><div class="label">Расходы за месяц</div><div class="bigsum num">${rub(s.total)}</div>
+      <div class="split" aria-hidden="true"><i style="width:${pL}%;background:var(--laura)"></i><i style="width:${s.total > 0 ? 100 - pL : 0}%;background:var(--mama)"></i></div>
+      <div class="legend num"><span><span class="dot" style="background:var(--laura)"></span>Платила Лаура <b>${pL}%</b></span><span><span class="dot" style="background:var(--mama)"></span>Платила мама <b>${s.total > 0 ? 100 - pL : 0}%</b></span><span>${s.count} ${plural(s.count, 'операция', 'операции', 'операций')}</span></div>
+    </section></div>
+  ${kpiCards(s)}
+  <div class="grid2">
+    <section class="card"><h2>По категориям <span>${cats.length ? 'доля от всех трат месяца' : ''}</span></h2>
+      <div class="cats">${cats.length ? cats.map(({ c, sum }) => `<div class="cat">${chip(c)}<span class="num" style="font-weight:600">${rub(sum)}</span><div class="bar"><i style="width:${Math.max(2, sum / max * 100)}%;background:${esc(c.color)}"></i></div><span class="meta num">${s.total > 0 ? Math.round(sum / s.total * 100) : 0}%</span></div>`).join('') : '<div class="empty">В этом месяце расходов пока нет.</div>'}</div>
+    </section>
+    <section class="card"><h2>Последние операции <button class="link" data-go="expenses">Все расходы</button></h2>
+      <div class="ops">${recent.length ? recent.map(opRow).join('') : '<div class="empty">Добавьте первый расход кнопкой «Добавить расход».</div>'}</div>
+    </section>
+  </div>
+  <div class="grid2">
+    <section class="card"><h2>Сравнение с прошлым месяцем</h2>${cmp}</section>
+    <section class="card"><h2>Переводы <button class="link" data-act="add-transfer">Записать перевод</button></h2>
+      <div class="ops">${tr.length ? tr.slice().sort((a, b) => b.date.localeCompare(a.date)).map(trRow).join('') : '<div class="empty">В этом месяце переводов не было. Записанный перевод сразу уменьшает долг.</div>'}</div>
+      ${tr.length ? `<div class="sum" style="margin-top:10px"><span>Компенсировано</span><b class="num">${rub(s.compensated)} из ${rub(Math.abs(s.net))}</b></div>` : ''}
+    </section>
+  </div>`;
+}
+function plural(n, a, b, c) { n = Math.abs(n) % 100; const n1 = n % 10; if (n > 10 && n < 20) return c; if (n1 > 1 && n1 < 5) return b; if (n1 === 1) return a; return c; }
+
+/* ================= Журнал расходов ================= */
+function viewExpenses() {
+  const months = [...new Set(exps().map(e => e.date.slice(0, 7)))].sort().reverse();
+  const f = S.f;
+  const opt = (v, l, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(l)}</option>`;
+  return `
+  <div class="top"><h1>Расходы</h1><span class="spacer"></span><button class="btn add" data-act="add-expense">${plus}Добавить расход</button></div>
+  ${newDataBanner()}
+  <section class="card"><div class="filters">
+    <select class="inp" id="f-month" aria-label="Месяц">${opt('cur', ymLabel(S.ym) + ' (выбранный)', f.month === 'cur')}${opt('all', 'Все месяцы', f.month === 'all')}${months.map(m => opt(m, ymLabel(ymOf(m + '-01')), f.month === m)).join('')}</select>
+    <select class="inp" id="f-cat" aria-label="Категория">${opt('', 'Все категории', !f.cat)}${S.d.categories.map(c => opt(c.id, c.name + (c.archived ? ' (архив)' : ''), f.cat === c.id)).join('')}</select>
+    <select class="inp" id="f-payer" aria-label="Кто платил">${opt('', 'Платили обе', !f.payer)}${opt('L', 'Платила Лаура', f.payer === 'L')}${opt('M', 'Платила мама', f.payer === 'M')}</select>
+    <select class="inp" id="f-sort" aria-label="Сортировка">${opt('date-desc', 'Сначала новые', f.sort === 'date-desc')}${opt('date-asc', 'Сначала старые', f.sort === 'date-asc')}${opt('sum-desc', 'Сначала дорогие', f.sort === 'sum-desc')}${opt('sum-asc', 'Сначала дешёвые', f.sort === 'sum-asc')}</select>
+    <input class="inp num" id="f-min" inputmode="decimal" placeholder="Сумма от, ₽" value="${esc(f.min)}" aria-label="Сумма от">
+    <input class="inp num" id="f-max" inputmode="decimal" placeholder="Сумма до, ₽" value="${esc(f.max)}" aria-label="Сумма до">
+    <input class="inp q" id="f-q" type="search" placeholder="Поиск по назначению и комментарию" value="${esc(f.q)}" aria-label="Поиск">
+  </div></section>
+  <section class="card" id="exp-list">${expenseList()}</section>`;
+}
+function expenseList() {
+  const f = S.f, q = f.q.trim().toLowerCase();
+  const min = f.min ? parseRub(f.min) : NaN, max = f.max ? parseRub(f.max) : NaN;
+  let list = exps().filter(e =>
+    (f.month === 'all' || (f.month === 'cur' ? inYm(e.date, S.ym) : e.date.slice(0, 7) === f.month)) &&
+    (!f.cat || e.categoryId === f.cat) && (!f.payer || e.paidBy === f.payer) &&
+    (isNaN(min) || Math.abs(e.amount) >= min) && (isNaN(max) || Math.abs(e.amount) <= max) &&
+    (!q || (e.title + ' ' + e.comment).toLowerCase().includes(q)));
+  const [k, dir] = f.sort.split('-'), sg = dir === 'asc' ? 1 : -1;
+  list.sort((a, b) => sg * (k === 'sum' ? a.amount - b.amount : a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)));
+  const total = list.reduce((a, e) => a + e.amount, 0);
+  return `<div class="sum" style="margin-bottom:6px"><span>${list.length} ${plural(list.length, 'операция', 'операции', 'операций')}</span><b class="num">${rub(total)}</b></div>
+    <div class="ops">${list.length ? list.map(opRow).join('') : '<div class="empty">Ничего не найдено. Измените фильтры или добавьте расход.</div>'}</div>`;
+}
+
+/* ================= Взаиморасчёты ================= */
+function viewSettle() {
+  const all = S.scope === 'all';
+  const list = all ? exps() : exps().filter(e => inYm(e.date, S.ym));
+  const tr = all ? trs() : trs().filter(t => inYm(t.date, S.ym));
+  const s = settle_(list, tr);
+  let monthly = '';
+  if (all) {
+    const keys = [...new Set([...list.map(e => e.date.slice(0, 7)), ...tr.map(t => t.date.slice(0, 7))])].sort().reverse();
+    monthly = `<section class="card"><h2>По месяцам <span>каждый месяц закрывается отдельно</span></h2><div class="tbl-wrap"><table class="tbl num">
+      <thead><tr><th>Месяц</th><th class="r">Расходы</th><th class="r">Долг до переводов</th><th class="r">Переводы</th><th class="r">Остаток</th></tr></thead><tbody>
+      ${keys.map(k => { const ym = ymOf(k + '-01'); const m = monthStats(ym).s; return `<tr><td><button class="link" data-goto-month="${k}">${ymLabel(ym)}</button></td><td class="r">${rub(m.total)}</td><td class="r">${debtShort(m.net)}</td><td class="r">${rub(m.tLM + m.tML)}</td><td class="r"><b>${debtShort(m.balance)}</b></td></tr>`; }).join('') || '<tr><td colspan="5" class="empty">Данных пока нет</td></tr>'}
+      </tbody></table></div></section>`;
+  }
+  return `
+  <div class="top"><h1>Взаиморасчёты</h1>
+    <div class="seg" style="min-width:230px"><button data-scope="month" aria-pressed="${!all}">Месяц</button><button data-scope="all" aria-pressed="${all}">Весь период</button></div>
+    ${all ? '' : monthSwitcher()}</div>
+  ${newDataBanner()}
+  <div class="hero">${all ? `<section class="card balance"><div class="label">За весь период · справочно</div><div class="dir">${debtText(roundRub_(s.balance))}</div><div class="big num">${rub(Math.abs(s.balance))}</div><div class="formula">Сумма остатков всех месяцев. Каждый месяц вы закрываете отдельно, остаток в следующий месяц не переносится.</div></section>` : balanceCard(s, S.ym, true)}
+    <section class="card"><div class="label">Как получился долг</div>
+      <div class="box" style="box-shadow:none;padding:0;margin-top:10px"><table class="num">
+        <tr><td>Мама оплатила, из этого доля Лауры</td><td>${rub(s.lOwesM)}</td></tr>
+        <tr><td>Лаура оплатила, из этого доля мамы с семьёй</td><td>${rub(s.mOwesL)}</td></tr>
+        <tr><td><b>${s.net >= 0 ? 'Лаура должна маме' : 'Мама должна Лауре'} до переводов</b></td><td><b>${rub(Math.abs(s.net))}</b></td></tr>
+        <tr><td>Уже компенсировано переводами</td><td>${rub(s.compensated)}</td></tr>
+        <tr><td><b>Остаток</b></td><td><b>${debtShort(s.balance)}</b></td></tr>
+      </table></div>
+      <p class="hint" style="margin:12px 0 0">Общая сумма расходов (${rub(s.total)}) не является долгом. Долг возникает только из той части, которую одна из вас оплатила за другую.</p>
+    </section></div>
+  ${kpiCards(s)}
+  <div class="grid2">
+    <section class="card"><h2>История переводов <button class="link" data-act="add-transfer">Записать перевод</button></h2>
+      <div class="ops">${tr.length ? tr.slice().sort((a, b) => b.date.localeCompare(a.date)).map(trRow).join('') : '<div class="empty">Переводов за этот период нет.</div>'}</div></section>
+    ${monthly || `<section class="card"><h2>Переводы за период</h2><div class="box" style="box-shadow:none;padding:0"><table class="num"><tr><td>Лаура → маме</td><td>${rub(s.tLM)}</td></tr><tr><td>Мама → Лауре</td><td>${rub(s.tML)}</td></tr></table></div></section>`}
+  </div>`;
+}
+function debtShort(b) { const r = roundRub_(b); return r === 0 ? '0 ₽' : (r > 0 ? 'Лаура → маме ' : 'Мама → Лауре ') + rub(Math.abs(b)); }
+
+/* ================= Аналитика ================= */
+function niceMax(v) { if (v <= 0) return 100; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p; return 10 * p; }
+function vbars(labels, series, stacked) {
+  const vw = (document.getElementById('view') || {}).clientWidth || 640;
+  const W = Math.max(300, Math.min(1100, vw - 44)), H = W < 500 ? 200 : 260, pl = 52, pr = 8, pt = 12, pb = 26, n = labels.length;
+  const tot = labels.map((_, i) => stacked ? series.reduce((a, s) => a + Math.max(0, s.values[i]), 0) : Math.max(0, ...series.map(s => s.values[i])));
+  const max = niceMax(Math.max(...tot, 0)), ih = H - pt - pb, cw = (W - pl - pr) / n;
+  const y = v => pt + ih - v / max * ih;
+  let g = '';
+  for (let i = 0; i <= 4; i++) { const v = max * i / 4, yy = y(v); g += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${yy}" y2="${yy}"/><text x="${pl - 6}" y="${yy + 4}" text-anchor="end">${shortRub(v)}</text>`; }
+  labels.forEach((l, i) => {
+    const x0 = pl + i * cw;
+    if (stacked) {
+      let base = 0; const bw = cw * .56;
+      series.forEach(s => { const v = Math.max(0, s.values[i]); if (v > 0) { g += `<rect x="${x0 + (cw - bw) / 2}" y="${y(base + v)}" width="${bw}" height="${y(base) - y(base + v)}" fill="${s.color}" rx="2"><title>${l}: ${s.name} ${rub(v)}</title></rect>`; } base += v; });
+    } else {
+      const bw = cw * .72 / series.length;
+      series.forEach((s, j) => { const v = Math.max(0, s.values[i]); if (v > 0) g += `<rect x="${x0 + cw * .14 + j * bw}" y="${y(v)}" width="${bw - 2}" height="${y(0) - y(v)}" fill="${s.color}" rx="2"><title>${l}: ${s.name} ${rub(v)}</title></rect>`; });
+    }
+    g += `<text x="${x0 + cw / 2}" y="${H - 8}" text-anchor="middle">${l}</text>`;
+  });
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div>
+    <div class="legend">${series.map(s => `<span><span class="dot" style="background:${s.color}"></span>${s.name}</span>`).join('')}</div>`;
+}
+function viewAnalytics() {
+  const Y = S.year, list = exps().filter(e => +e.date.slice(0, 4) === Y);
+  const months = Array.from({ length: 12 }, (_, m) => list.filter(e => +e.date.slice(5, 7) - 1 === m));
+  const stats = months.map(l => settle_(l, []));
+  const total = list.reduce((a, e) => a + e.amount, 0);
+  const withData = stats.filter(s => s.count).length;
+  const cats = byCategory(list), cmax = cats.length ? cats[0].sum : 1;
+  const cur = monthStats(S.ym).s, prev = monthStats(prevYm(S.ym)).s;
+  const delta = prev.total ? Math.round((cur.total - prev.total) / prev.total * 100) : null;
+  const sAll = settle_(list, []);
+  const cs = getComputedStyle(document.documentElement);
+  const cL = cs.getPropertyValue('--laura').trim() || '#B9584D', cM = cs.getPropertyValue('--mama').trim() || '#8A6A3F';
+  return `
+  <div class="top"><h1>Аналитика</h1><div class="month"><button data-act="prev-year" aria-label="Предыдущий год">‹</button><span>${Y} год</span><button data-act="next-year" aria-label="Следующий год">›</button></div></div>
+  <div class="kpis">
+    <section class="card kpi"><div class="label">Всего за год</div><div class="v num">${rub(total)}</div><div class="sub">${list.length} ${plural(list.length, 'операция', 'операции', 'операций')}</div></section>
+    <section class="card kpi"><div class="label">В среднем за месяц</div><div class="v num">${withData ? rub(Math.round(total / withData)) : '—'}</div><div class="sub">по ${withData} ${plural(withData, 'месяцу', 'месяцам', 'месяцам')} с расходами</div></section>
+    <section class="card kpi"><div class="label">Самая затратная</div><div class="v" style="font-size:17px;margin-top:10px">${cats.length ? chip(cats[0].c) : '—'}</div><div class="sub num">${cats.length ? rub(cats[0].sum) + ', ' + Math.round(cats[0].sum / total * 100) + '% трат' : ''}</div></section>
+    <section class="card kpi"><div class="label">${MONTHS[S.ym.m]} к ${MONTHS_DAT[prevYm(S.ym).m]}</div><div class="v num ${delta > 0 ? 'up' : 'down'}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta + '%'}</div><div class="sub num">${rub(cur.total)} против ${rub(prev.total)}</div></section>
+  </div>
+  <section class="card"><h2>Расходы по месяцам <span>кто сколько оплатил</span></h2>
+    ${withData ? vbars(MON_SHORT, [{ name: 'Оплатила Лаура', color: cL, values: stats.map(s => s.paidL) }, { name: 'Оплатила мама', color: cM, values: stats.map(s => s.paidM) }], true) : '<div class="empty">В этом году расходов нет.</div>'}
+  </section>
+  <div class="grid2">
+    <section class="card"><h2>Категории за год</h2><div class="cats">${cats.length ? cats.map(({ c, sum }) => `<div class="cat">${chip(c)}<span class="num" style="font-weight:600">${rub(sum)}</span><div class="bar"><i style="width:${Math.max(2, sum / cmax * 100)}%;background:${esc(c.color)}"></i></div><span class="meta num">${Math.round(sum / total * 100)}% · в среднем ${rub(Math.round(sum / Math.max(1, withData)))} в месяц</span></div>`).join('') : '<div class="empty">Нет данных.</div>'}</div></section>
+    <section class="card"><h2>Плательщики за год</h2>
+      <div class="box" style="box-shadow:none;padding:0"><table class="num">
+        <tr><td>Оплатила Лаура</td><td>${rub(sAll.paidL)}</td></tr><tr><td>Оплатила мама</td><td>${rub(sAll.paidM)}</td></tr>
+        <tr><td>Доля Лауры</td><td>${rub(sAll.respL)}</td></tr><tr><td>Доля мамы с семьёй</td><td>${rub(sAll.respM)}</td></tr></table></div>
+      <div class="split"><i style="width:${total > 0 ? sAll.respL / total * 100 : 0}%;background:var(--laura)"></i><i style="width:${total > 0 ? sAll.respM / total * 100 : 0}%;background:var(--mama)"></i></div>
+      <div class="legend"><span><span class="dot" style="background:var(--laura)"></span>Доля Лауры <b>${total > 0 ? Math.round(sAll.respL / total * 100) : 0}%</b></span><span><span class="dot" style="background:var(--mama)"></span>Доля мамы <b>${total > 0 ? Math.round(sAll.respM / total * 100) : 0}%</b></span></div>
+    </section>
+  </div>
+  <section class="card"><h2>Доли по месяцам <span>сколько расходов приходится на каждую</span></h2>
+    ${withData ? vbars(MON_SHORT, [{ name: 'Доля Лауры', color: cL, values: stats.map(s => s.respL) }, { name: 'Доля мамы с семьёй', color: cM, values: stats.map(s => s.respM) }], false) : '<div class="empty">В этом году расходов нет.</div>'}
+  </section>`;
+}
+
+/* ================= Категории ================= */
+function ruleText(c) {
+  if (c.mode === 'personal') return 'Личная: целиком на того, чья покупка';
+  const parts = JSON.parse(c.partsJson || '[]');
+  const names = parts.map(p => member(p.m).name);
+  let t;
+  if (c.mode === 'equal') t = (c.flexible ? 'Гибкая, по умолчанию поровну на ' : 'Поровну на ') + parts.length + ': ' + names.join(', ');
+  else if (c.mode === 'percent') t = parts.map(p => member(p.m).name + ' ' + String(p.bp / 100).replace('.', ',') + '%').join(' · ');
+  else t = parts.map(p => member(p.m).name + ' ' + rub(p.kop)).join(' · ') + ' (фиксированно)';
+  const odd = parts.filter(p => p.resp !== (p.m === 'L' ? 'L' : 'M'));
+  if (odd.length) t += '. Особые правила: ' + odd.map(p => 'долю «' + member(p.m).name + '» платит ' + (p.resp === 'L' ? 'Лаура' : 'мама')).join(', ');
+  return t;
+}
+function viewCategories() {
+  const act = S.d.categories.filter(c => !c.archived), arch = S.d.categories.filter(c => c.archived);
+  const count = id => exps().filter(e => e.categoryId === id).length;
+  const card = c => `<button class="catcard" data-open-cat="${esc(c.id)}">${chip(c)}<div class="rule">${esc(ruleText(c))}</div><div class="hint">${count(c.id)} ${plural(count(c.id), 'операция', 'операции', 'операций')}</div></button>`;
+  return `<div class="top"><h1>Категории</h1><span class="spacer"></span><button class="btn" data-act="add-category">${plus}Новая категория</button></div>
+  ${newDataBanner()}
+  <div class="note">Правило категории подставляется в новые расходы. Если правило изменить, уже внесённые расходы останутся с тем распределением, с которым их сохранили.</div>
+  <div class="catcards">${act.map(card).join('')}</div>
+  ${arch.length ? `<h2 style="font-size:16px;margin:8px 0 0">Архив</h2><div class="catcards">${arch.map(card).join('')}</div>` : ''}`;
+}
+
+/* ================= Настройки ================= */
+function viewSettings() {
+  const me = S.d.me;
+  return `<div class="top"><h1>Настройки</h1></div>
+  ${newDataBanner()}
+  <div class="grid2">
+    <section class="card"><h2>Участники <button class="link" data-act="add-member">Добавить</button></h2>
+      <div class="list">${S.d.members.map(m => `<div class="row"><span>${esc(m.name)} <span class="tag ${m.isPayer ? (m.id === 'L' ? 'tL' : 'tM') : 'tN'}" style="margin:0 0 0 6px">${m.isPayer ? 'плательщик' : m.archived ? 'в архиве' : 'член семьи'}</span></span>${m.isPayer ? '' : `<button class="link" data-open-member="${m.id}">Изменить</button>`}</div>`).join('')}</div>
+      <p class="hint" style="margin:10px 0 0">Взаиморасчёты ведутся только между Лаурой и мамой. Доли остальных членов семьи по умолчанию оплачивает мама.</p></section>
+    <section class="card"><h2>Доступ</h2>
+      <div class="list">${S.d.users.map(u => `<div class="row"><span>${payerName(u.payer)}</span><span class="hint">${esc(u.email)}${u.owner ? ' · владелец' : ''}</span></div>`).join('')}</div>
+      <p class="hint" style="margin:10px 0 0">Приложение открывается только с этих двух Google-аккаунтов.</p></section>
+  </div>
+  <div class="grid2">
+    <section class="card"><h2>Резервные копии</h2>
+      <p style="margin:0 0 12px">Каждую ночь копия базы автоматически сохраняется на Google Диске владельца в папку «Семейный бюджет — резервные копии». Хранятся последние 30 копий.</p>
+      <p class="hint" style="margin:0 0 12px">Последняя копия: ${S.d.lastBackup ? new Date(S.d.lastBackup).toLocaleString('ru-RU') : 'ещё не создавалась'}</p>
+      ${me.isOwner ? '<button class="btn small ghost" data-act="backup">Создать копию сейчас</button>' : '<p class="hint" style="margin:0">Копию вручную может создать Лаура.</p>'}
+      ${me.isOwner && S.d.dbUrl ? `<p class="hint" style="margin:12px 0 0">База данных: <a href="${esc(S.d.dbUrl)}" target="_blank" rel="noopener">открыть таблицу</a>. Править её вручную не нужно.</p>` : ''}
+      <div id="backup-res"></div></section>
+    <section class="card"><h2>Экспорт в Excel</h2>
+      <p style="margin:0 0 12px">Файл .xlsx с расходами, переводами и итогом появится в папке «Семейный бюджет — экспорт» на вашем Google Диске.</p>
+      <div class="actions"><button class="btn small ghost" data-export="${ymKey(S.ym)}">${ymLabel(S.ym)}</button><button class="btn small ghost" data-export="">Все месяцы</button></div>
+      <div id="export-res" style="margin-top:12px"></div></section>
+  </div>
+  <section class="card"><h2>Это устройство</h2>
+    <p style="margin:0 0 12px">Вы вошли как ${payerName(me.payer)}. Вход запомнен на этом устройстве.</p>
+    <div class="actions"><button class="btn small ghost" data-act="change-pwd">Сменить пароль</button><button class="btn small ghost" data-act="logout">Выйти на этом устройстве</button></div></section>
+  <section class="card"><h2>История изменений <span>кто, что и когда менял</span></h2><div id="hist"><button class="btn small ghost" data-act="load-history">Показать последние 60 изменений</button></div></section>`;
+}
+function histLine(h) {
+  const who = userName(h.user), b = h.before ? JSON.parse(h.before) : null, a = h.after ? JSON.parse(h.after) : null, o = a || b || {};
+  const verb = { create: 'добавила', update: 'изменила', delete: 'удалила', restore: 'вернула', archive: 'отправила в архив' }[h.action] || h.action;
+  let what = '';
+  if (h.entity === 'expense') {
+    what = `расход «${esc(o.title)}» на ${rub(o.amount)} (${dmy(o.date)})`;
+    if (h.action === 'update' && b && a) {
+      const ch = [];
+      if (b.amount !== a.amount) ch.push('сумма ' + rub(b.amount) + ' → ' + rub(a.amount));
+      if (b.title !== a.title) ch.push('назначение «' + esc(b.title) + '» → «' + esc(a.title) + '»');
+      if (b.date !== a.date) ch.push('дата ' + dmy(b.date) + ' → ' + dmy(a.date));
+      if (b.categoryName !== a.categoryName) ch.push('категория ' + esc(b.categoryName) + ' → ' + esc(a.categoryName));
+      if (b.paidBy !== a.paidBy) ch.push('платила ' + payerName(b.paidBy).toLowerCase() + ' → ' + payerName(a.paidBy).toLowerCase());
+      if (b.sharesJson !== a.sharesJson) ch.push('распределение');
+      if (b.comment !== a.comment) ch.push('комментарий');
+      if (ch.length) what += ': ' + ch.join(', ');
+    }
+  } else if (h.entity === 'transfer') what = `перевод ${payerName(o.from).toLowerCase()} → ${payerTo(o.to)} на ${rub(o.amount)} (${dmy(o.date)})`;
+  else if (h.entity === 'category') what = `категорию «${esc(o.name)}»${h.action === 'update' && b && a && b.partsJson !== a.partsJson ? ': новое правило распределения' : ''}`;
+  else if (h.entity === 'member') what = `участника «${esc(o.name)}»`;
+  else if (h.entity === 'import') { return `<div class="h"><div>${who} перенесла данные из старой таблицы (${o.rows} операций)</div><div class="when">${new Date(h.at).toLocaleString('ru-RU')}</div></div>`; }
+  return `<div class="h"><div>${who} ${verb} ${what}</div><div class="when">${new Date(h.at).toLocaleString('ru-RU')}</div></div>`;
+}
+
+/* ================= Листы (формы) ================= */
+const sheetRoot = document.getElementById('sheetRoot');
+let sheetEl = null, onSheetClose = null;
+function openSheet(html, label) {
+  sheetRoot.innerHTML = `<div class="scrim" data-scrim><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(label || '')}">${html}</div></div>`;
+  sheetEl = sheetRoot.querySelector('.sheet');
+  const first = sheetEl.querySelector('[data-autofocus]');
+  if (first && matchMedia('(min-width:761px)').matches) first.focus();
+}
+function closeSheet() { sheetRoot.innerHTML = ''; sheetEl = null; if (onSheetClose) { const f = onSheetClose; onSheetClose = null; f(); } }
+function head(title) { return `<header><h3>${esc(title)}</h3><button class="x" data-close aria-label="Закрыть">✕</button></header>`; }
+let toastTimer;
+function toast(msg, action) {
+  const r = document.getElementById('toastRoot');
+  r.innerHTML = `<div class="toast" role="status"><span>${esc(msg)}</span>${action ? `<button id="toast-act">${esc(action.label)}</button>` : ''}</div>`;
+  if (action) r.querySelector('#toast-act').onclick = () => { r.innerHTML = ''; action.fn(); };
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => r.innerHTML = '', action ? 7000 : 2600);
+}
+async function run(btn, fn) {
+  const old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем…'; }
+  try { return await fn(); }
+  catch (e) { if (btn) { btn.disabled = false; btn.textContent = old; } throw e; }
+}
+
+/* ---------- Форма расхода ---------- */
+let F = null;
+function partsState(list) {
+  const st = {};
+  activeMembers().forEach(m => st[m.id] = { on: false, bp: '', kop: '', resp: m.id === 'L' ? 'L' : 'M' });
+  (list || []).forEach(p => {
+    if (!st[p.m]) st[p.m] = { on: false, bp: '', kop: '', resp: p.m === 'L' ? 'L' : 'M' };
+    st[p.m] = { on: true, bp: p.bp ? String(p.bp / 100).replace('.', ',') : '', kop: p.kop ? kopInput(p.kop) : '', resp: p.resp || (p.m === 'L' ? 'L' : 'M') };
+  });
+  return st;
+}
+function applyCategory(c) {
+  F.categoryId = c.id; F.custom = false;
+  if (c.mode === 'personal') { F.mode = 'personal'; F.owner = F.owner || S.d.me.payer; F.parts = partsState([]); }
+  else { F.mode = c.mode; F.parts = partsState(JSON.parse(c.partsJson || '[]')); }
+}
+function openExpenseForm(id) {
+  const e = id ? S.d.expenses.find(x => x.id === id) : null;
+  const firstCat = S.d.categories.find(c => !c.archived);
+  F = { id: e ? e.id : null, version: e ? e.version : null, requestId: uid(), date: e ? e.date : (inYm(todayIso(), S.ym) ? todayIso() : ymKey(S.ym) + '-01'),
+    title: e ? e.title : '', amount: e ? kopInput(e.amount) : '', refund: e ? e.amount < 0 : false, paidBy: e ? e.paidBy : S.d.me.payer, comment: e ? e.comment : '',
+    owner: S.d.me.payer, force: false };
+  if (e) {
+    const c = catById(e.categoryId);
+    F.categoryId = e.categoryId;
+    const sh = JSON.parse(e.sharesJson || '[]');
+    if (c && c.mode === 'personal' && sh.length === 1 && sh[0].m === sh[0].resp && (sh[0].m === 'L' || sh[0].m === 'M')) { F.mode = 'personal'; F.owner = sh[0].m; F.parts = partsState([]); F.custom = false; }
+    else { F.mode = e.mode; F.parts = partsState(sh); F.custom = true; }
+  } else if (firstCat) applyCategory(firstCat);
+  if (!firstCat && !e) { toast('Сначала создайте хотя бы одну категорию'); return; }
+  openSheet(`${head(e ? 'Изменить расход' : 'Новый расход')}
+    <div class="field"><label for="x-amount">Сумма, ₽</label><input class="inp amount num" id="x-amount" data-autofocus inputmode="decimal" placeholder="0" value="${esc(F.amount)}" autocomplete="off"></div>
+    <label class="check"><input type="checkbox" id="x-refund" ${F.refund ? 'checked' : ''}> Это возврат (деньги вернулись, долг уменьшится)</label>
+    <div class="row2"><div class="field"><label for="x-title">Назначение</label><input class="inp" id="x-title" maxlength="200" placeholder="Например, продукты" value="${esc(F.title)}"></div>
+    <div class="field"><label for="x-date">Дата</label><input class="inp" type="date" id="x-date" value="${F.date}"></div></div>
+    <div class="field"><span class="lab">Категория</span><div class="picker" id="x-cats"></div></div>
+    <div class="field"><span class="lab">Кто оплатил</span><div class="seg" id="x-paid"></div></div>
+    <div id="x-dist" class="field"></div>
+    <div class="field"><label for="x-comment">Комментарий, по желанию</label><textarea class="inp" id="x-comment" maxlength="1000">${esc(F.comment)}</textarea></div>
+    <div id="x-prev"></div><div id="x-msg"></div>
+    <button class="save" id="x-save">${e ? 'Сохранить изменения' : 'Сохранить расход'}</button>`, 'Расход');
+  drawExpenseStatic(); drawDist(); drawPreview();
+}
+function drawExpenseStatic() {
+  const cats = S.d.categories.filter(c => !c.archived || c.id === F.categoryId);
+  sheetEl.querySelector('#x-cats').innerHTML = cats.map(c => `<button class="chip" data-xcat="${c.id}" aria-pressed="${c.id === F.categoryId}" style="color:${esc(c.color)}">${esc(c.name)}</button>`).join('');
+  sheetEl.querySelector('#x-paid').innerHTML = ['L', 'M'].map(p => `<button data-xpaid="${p}" aria-pressed="${F.paidBy === p}">${payerName(p)}</button>`).join('');
+}
+function distMembers() { const ids = Object.keys(F.parts); return S.d.members.filter(m => ids.includes(m.id) && (!m.archived || F.parts[m.id].on)); }
+function drawDist() {
+  const c = catById(F.categoryId) || {};
+  let h = '';
+  if (!F.custom && F.mode === 'personal') {
+    h = `<span class="lab">Чья покупка</span><div class="seg">${['L', 'M'].map(p => `<button data-xowner="${p}" aria-pressed="${F.owner === p}">${p === 'L' ? 'Лауры' : 'Мамы'}</button>`).join('')}</div>
+      <span class="hint">Покупка целиком относится на этого человека. <button class="link" data-xact="custom">Настроить иначе</button></span>`;
+  } else if (!F.custom) {
+    const on = distMembers().filter(m => F.parts[m.id].on);
+    if (c.flexible && F.mode === 'equal') {
+      const act = activeMembers(), n = on.length;
+      h = `<span class="lab">На сколько человек делим</span><div class="seg">${act.slice(1).map((_, i) => `<button data-xcount="${i + 2}" aria-pressed="${n === i + 2}">${i + 2}</button>`).join('')}</div>
+        <span class="hint">${esc(on.map(m => m.name).join(', '))}. <button class="link" data-xact="custom">Выбрать участников и доли</button></span>`;
+    } else {
+      h = `<span class="lab">Распределение</span><div class="hint" style="font-size:14px;color:var(--fg)">${esc(ruleText(c))}</div>
+        <span class="hint"><button class="link" data-xact="custom">Изменить для этой операции</button> · правило категории останется прежним</span>`;
+    }
+  } else {
+    const ms = distMembers(), md = F.mode === 'personal' ? 'equal' : F.mode;
+    if (F.mode === 'personal') { F.mode = 'equal'; Object.keys(F.parts).forEach(k => F.parts[k].on = k === F.owner); F.parts[F.owner].resp = F.owner; }
+    const on = ms.filter(m => F.parts[m.id].on);
+    let check = '';
+    if (md === 'percent') { const t = on.reduce((a, m) => a + (parseFloat(String(F.parts[m.id].bp).replace(',', '.')) || 0), 0); check = `Распределено ${String(Math.round(t * 100) / 100).replace('.', ',')}% из 100%`; }
+    if (md === 'fixed') { const t = on.reduce((a, m) => a + (parseRub(F.parts[m.id].kop) || 0), 0); const amt = parseRub(F.amount); check = `Распределено ${rubExact(t)} из ${isNaN(amt) ? '—' : rubExact(amt)}`; }
+    h = `<span class="lab">Распределение этой операции</span>
+      <div class="seg">${[['equal', 'Поровну'], ['percent', 'Проценты'], ['fixed', 'Суммы']].map(([k, l]) => `<button data-xmode="${k}" aria-pressed="${md === k}">${l}</button>`).join('')}</div>
+      ${ms.map(m => { const p = F.parts[m.id]; return `<div class="prow"><label><input type="checkbox" data-xon="${m.id}" ${p.on ? 'checked' : ''}> ${esc(m.name)}</label>
+        ${md === 'equal' ? '<span></span>' : `<input class="inp num" data-xval="${m.id}" inputmode="decimal" placeholder="${md === 'percent' ? '%' : '₽'}" value="${esc(md === 'percent' ? p.bp : p.kop)}" ${p.on ? '' : 'disabled'} aria-label="${md === 'percent' ? 'Процент' : 'Сумма'}: ${esc(m.name)}">`}
+        <select class="inp" data-xresp="${m.id}" ${p.on ? '' : 'disabled'} aria-label="Кто платит долю: ${esc(m.name)}"><option value="L" ${p.resp === 'L' ? 'selected' : ''}>платит Лаура</option><option value="M" ${p.resp === 'M' ? 'selected' : ''}>платит мама</option></select></div>`; }).join('')}
+      <span class="hint" id="x-check">${check}</span>
+      ${md !== 'equal' ? '<span class="hint"><button class="link" data-xact="evenly">Разделить поровну</button></span>' : ''}
+      <span class="hint"><button class="link" data-xact="reset">Вернуть правило категории</button></span>`;
+  }
+  sheetEl.querySelector('#x-dist').innerHTML = h;
+}
+function formToEngine() {
+  const a = parseRub(F.amount);
+  if (isNaN(a) || a === 0) throw new Error('Введите сумму');
+  const amount = F.refund ? -a : a;
+  if (F.mode === 'personal') return { amount, mode: 'equal', parts: [{ m: F.owner, resp: F.owner }] };
+  const parts = distMembers().filter(m => F.parts[m.id].on).map(m => {
+    const p = F.parts[m.id], o = { m: m.id, resp: p.resp };
+    if (F.mode === 'percent') o.bp = Math.round((parseFloat(String(p.bp).replace(',', '.')) || 0) * 100);
+    if (F.mode === 'fixed') { const k = parseRub(p.kop); o.kop = isNaN(k) ? NaN : (F.refund ? -k : k); }
+    return o;
+  });
+  return { amount, mode: F.mode, parts };
+}
+function drawPreview() {
+  const box = sheetEl.querySelector('#x-prev');
+  let x;
+  try { x = formToEngine(); } catch (e) { box.innerHTML = `<div class="box"><div class="hint">Введите сумму, и здесь появится расчёт долей и долга ещё до сохранения.</div></div>`; return; }
+  let r;
+  try { r = computeSplit_(x.amount, F.paidBy, x.mode, x.parts); }
+  catch (e) { box.innerHTML = `<div class="box"><div class="err">${esc(e.message)}</div></div>`; return; }
+  const ym = ymOf(F.date || todayIso());
+  const base = exps().filter(e => inYm(e.date, ym) && e.id !== F.id), tr = trs().filter(t => inYm(t.date, ym));
+  const before = settle_(base, tr).balance, after = before + r.delta;
+  const order = { L: 0, M: 1 };
+  const rows = r.shares.slice().sort((a, b) => (order[a.m] ?? 2) - (order[b.m] ?? 2)).map(s => {
+    const m = member(s.m); const note = s.resp !== s.m ? ` <span class="hint">(платит ${s.resp === 'L' ? 'Лаура' : 'мама'})</span>` : '';
+    return `<tr><td>${esc(m.name)}${note}</td><td>${rub(s.kop)}</td></tr>`;
+  }).join('');
+  const st = r.delta > 0 ? 'Лаура должна маме ' + rub(r.delta) : r.delta < 0 ? 'Мама должна Лауре ' + rub(-r.delta) : 'Долг не возникает: каждая заплатила за себя';
+  box.innerHTML = `<div class="box"><div class="label">Расчёт до сохранения</div><table class="num">${rows}
+    <tr><td><b>Итого доля Лауры</b></td><td><b>${rub(r.respL)}</b></td></tr><tr><td><b>Итого доля мамы</b> <span class="hint">с семьёй</span></td><td><b>${rub(r.respM)}</b></td></tr></table>
+    <div class="res num">${st}</div>
+    <div class="hint num">Взаиморасчёт за ${MONTHS[ym.m].toLowerCase()}: ${debtShort(before)} → <b>${debtShort(after)}</b></div></div>`;
+}
+function syncExpenseFields() {
+  F.amount = sheetEl.querySelector('#x-amount').value;
+  F.refund = sheetEl.querySelector('#x-refund').checked;
+  F.title = sheetEl.querySelector('#x-title').value;
+  F.date = sheetEl.querySelector('#x-date').value;
+  F.comment = sheetEl.querySelector('#x-comment').value;
+  sheetEl.querySelectorAll('[data-xval]').forEach(i => { const p = F.parts[i.dataset.xval]; if (F.mode === 'percent') p.bp = i.value; else p.kop = i.value; });
+  sheetEl.querySelectorAll('[data-xresp]').forEach(i => F.parts[i.dataset.xresp].resp = i.value);
+}
+async function saveExpense(btn) {
+  syncExpenseFields();
+  const msg = sheetEl.querySelector('#x-msg');
+  msg.innerHTML = '';
+  let x;
+  try {
+    if (!F.title.trim()) throw new Error('Заполните назначение');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(F.date)) throw new Error('Укажите дату');
+    x = formToEngine();
+    computeSplit_(x.amount, F.paidBy, x.mode, x.parts);
+  } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; }
+  const payload = { id: F.id, version: F.version, requestId: F.requestId, date: F.date, title: F.title.trim(), categoryId: F.categoryId,
+    amount: x.amount, paidBy: F.paidBy, mode: x.mode, parts: x.parts, comment: F.comment.trim(), force: F.force };
+  try {
+    const res = await run(btn, () => api('api_saveExpense', payload));
+    if (res.duplicate) {
+      btn.disabled = false; btn.textContent = F.id ? 'Сохранить изменения' : 'Сохранить расход';
+      msg.innerHTML = `<div class="warnbox"><span>Похоже на повтор: ${dmy(res.duplicate.date)} уже есть «${esc(res.duplicate.title)}» на ${rub(res.duplicate.amount)} в этой категории (добавила ${userName(res.duplicate.createdBy).toLowerCase()}).</span><div class="actions"><button class="btn small" data-xact="force">Всё равно сохранить</button><button class="btn small ghost" data-close>Не сохранять</button></div></div>`;
+      return;
+    }
+    const wasEdit = !!F.id;
+    closeSheet(); setData(res.data);
+    toast(wasEdit ? 'Изменения сохранены' : 'Расход сохранён');
+  } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+/* ---------- Подробности расхода ---------- */
+function openExpenseDetails(id) {
+  const e = S.d.expenses.find(x => x.id === id);
+  if (!e) return;
+  const sh = JSON.parse(e.sharesJson || '[]');
+  const order = { L: 0, M: 1 };
+  const rows = sh.slice().sort((a, b) => (order[a.m] ?? 2) - (order[b.m] ?? 2)).map(s => `<tr><td>${esc(s.name || member(s.m).name)}${s.resp !== s.m ? ` <span class="hint">(платит ${s.resp === 'L' ? 'Лаура' : 'мама'})</span>` : ''}${s.bp ? ` <span class="hint">${String(s.bp / 100).replace('.', ',')}%</span>` : ''}</td><td>${rub(s.kop)}</td></tr>`).join('');
+  const d = e.paidBy === 'M' ? e.respL : -e.respM;
+  openSheet(`${head(e.title)}
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${chip(catOf(e))}<span class="hint">${dmy(e.date)} · платила ${payerName(e.paidBy).toLowerCase()}</span></div>
+    <div class="bigsum num" style="margin:0">${rub(e.amount)}${e.amount < 0 ? ' <span class="hint">возврат</span>' : ''}</div>
+    <div class="box"><div class="label">Распределение, сохранённое с операцией</div><table class="num">${rows}
+      <tr><td><b>Итого доля Лауры</b></td><td><b>${rub(e.respL)}</b></td></tr><tr><td><b>Итого доля мамы</b> <span class="hint">с семьёй</span></td><td><b>${rub(e.respM)}</b></td></tr></table>
+      <div class="res num">${d > 0 ? 'Лаура должна маме ' + rub(d) : d < 0 ? 'Мама должна Лауре ' + rub(-d) : 'Долга по этой операции нет'}</div></div>
+    ${e.comment ? `<div class="field"><span class="lab">Комментарий</span><div>${esc(e.comment)}</div></div>` : ''}
+    <div class="hint">Добавила ${userName(e.createdBy).toLowerCase()} ${new Date(e.createdAt).toLocaleString('ru-RU')}${e.version > 1 ? ` · изменила ${userName(e.updatedBy).toLowerCase()} ${new Date(e.updatedAt).toLocaleString('ru-RU')}` : ''}</div>
+    <div class="actions"><button class="btn" data-xedit="${e.id}">Изменить</button><button class="btn ghost" data-xdel="${e.id}">Удалить</button><button class="btn ghost" data-xhist="${e.id}">История</button></div>
+    <div id="d-extra"></div>`, 'Расход');
+}
+async function showEntityHistory(id) {
+  const box = sheetEl.querySelector('#d-extra');
+  box.innerHTML = '<div class="hint">Загружаем историю…</div>';
+  try { const h = await api('api_history', id, 50); box.innerHTML = `<div class="box"><div class="label">История</div><div class="hist">${h.map(histLine).join('') || '<div class="hint">Пусто</div>'}</div></div>`; }
+  catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+function askDeleteExpense(id) {
+  const e = S.d.expenses.find(x => x.id === id);
+  sheetEl.querySelector('#d-extra').innerHTML = `<div class="warnbox"><span>Удалить «${esc(e.title)}» на ${rub(e.amount)}? Сразу после удаления его можно вернуть.</span><div class="actions"><button class="btn small danger" data-xdelok="${id}">Удалить</button><button class="btn small ghost" data-xdelno>Отмена</button></div></div>`;
+}
+async function deleteExpense(id, btn) {
+  const e = S.d.expenses.find(x => x.id === id);
+  try {
+    const res = await run(btn, () => api('api_deleteExpense', id, e.version));
+    closeSheet(); setData(res.data);
+    toast('Расход удалён', { label: 'Вернуть', fn: async () => { try { setData((await api('api_restoreExpense', id)).data); toast('Расход возвращён'); } catch (er) { toast(er.message); } } });
+  } catch (er) { sheetEl.querySelector('#d-extra').innerHTML = `<div class="err">${esc(er.message)}</div>`; }
+}
+
+/* ---------- Переводы ---------- */
+let T = null;
+function openTransferForm(id) {
+  const t = id ? S.d.transfers.find(x => x.id === id) : null;
+  const bal = monthStats(S.ym).s.balance;
+  T = { id: t ? t.id : null, version: t ? t.version : null, requestId: uid(), date: t ? t.date : (inYm(todayIso(), S.ym) ? todayIso() : ymKey(S.ym) + '-28'),
+    amount: t ? kopInput(t.amount) : (bal ? kopInput(roundRub_(Math.abs(bal))) : ''), from: t ? t.from : (bal < 0 ? 'M' : 'L'), comment: t ? t.comment : '' };
+  openSheet(`${head(t ? 'Изменить перевод' : 'Новый перевод')}
+    <div class="field"><span class="lab">Кто кому перевёл</span><div class="seg" id="t-dir"></div></div>
+    <div class="row2"><div class="field"><label for="t-amount">Сумма, ₽</label><input class="inp amount num" id="t-amount" data-autofocus inputmode="decimal" value="${esc(T.amount)}" autocomplete="off"></div>
+    <div class="field"><label for="t-date">Дата</label><input class="inp" type="date" id="t-date" value="${T.date}"></div></div>
+    <div class="field"><label for="t-comment">Комментарий, по желанию</label><input class="inp" id="t-comment" maxlength="500" value="${esc(T.comment)}" placeholder="Например, за октябрь"></div>
+    <div id="t-prev"></div><div id="t-msg"></div>
+    <button class="save" id="t-save">${t ? 'Сохранить изменения' : 'Записать перевод'}</button>
+    ${t ? `<div class="actions"><button class="btn ghost" data-tdel="${t.id}">Удалить перевод</button><button class="btn ghost" data-xhist="${t.id}">История</button></div><div id="d-extra"></div>` : ''}`, 'Перевод');
+  drawTransfer();
+}
+function drawTransfer() {
+  sheetEl.querySelector('#t-dir').innerHTML = [['L', 'Лаура → маме'], ['M', 'Мама → Лауре']].map(([p, l]) => `<button data-tfrom="${p}" aria-pressed="${T.from === p}">${l}</button>`).join('');
+  const k = parseRub(T.amount), ym = ymOf(T.date || todayIso());
+  const base = exps().filter(e => inYm(e.date, ym)), tr = trs().filter(t => inYm(t.date, ym) && t.id !== T.id);
+  const before = settle_(base, tr).balance;
+  const after = isNaN(k) ? before : before + (T.from === 'L' ? -k : k);
+  sheetEl.querySelector('#t-prev').innerHTML = `<div class="box"><div class="label">Взаиморасчёт за ${MONTHS[ym.m].toLowerCase()}</div><div class="num">${debtShort(before)} → <b>${debtShort(after)}</b></div>
+    ${!isNaN(k) && Math.sign(after) !== Math.sign(before) && after !== 0 && before !== 0 ? '<div class="hint">Перевод больше долга: направление долга поменяется.</div>' : ''}</div>`;
+}
+async function saveTransfer(btn) {
+  T.amount = sheetEl.querySelector('#t-amount').value; T.date = sheetEl.querySelector('#t-date').value; T.comment = sheetEl.querySelector('#t-comment').value;
+  const msg = sheetEl.querySelector('#t-msg'), k = parseRub(T.amount);
+  if (isNaN(k) || k <= 0) { msg.innerHTML = '<div class="err">Введите сумму перевода</div>'; return; }
+  if (!T.date) { msg.innerHTML = '<div class="err">Укажите дату</div>'; return; }
+  try {
+    const wasEdit = !!T.id;
+    const res = await run(btn, () => api('api_saveTransfer', { id: T.id, version: T.version, requestId: T.requestId, date: T.date, amount: k, from: T.from, to: T.from === 'L' ? 'M' : 'L', comment: T.comment.trim() }));
+    closeSheet(); setData(res.data); toast(wasEdit ? 'Перевод изменён' : 'Перевод записан');
+  } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+function askDeleteTransfer(id) {
+  sheetEl.querySelector('#d-extra').innerHTML = `<div class="warnbox"><span>Удалить перевод? Долг снова увеличится на его сумму.</span><div class="actions"><button class="btn small danger" data-tdelok="${id}">Удалить</button><button class="btn small ghost" data-xdelno>Отмена</button></div></div>`;
+}
+async function deleteTransfer(id, btn) {
+  const t = S.d.transfers.find(x => x.id === id);
+  try {
+    const res = await run(btn, () => api('api_deleteTransfer', id, t.version));
+    closeSheet(); setData(res.data);
+    toast('Перевод удалён', { label: 'Вернуть', fn: async () => { try { setData((await api('api_restoreTransfer', id)).data); } catch (er) { toast(er.message); } } });
+  } catch (er) { sheetEl.querySelector('#d-extra').innerHTML = `<div class="err">${esc(er.message)}</div>`; }
+}
+
+/* ---------- Категория ---------- */
+let C = null;
+function openCategoryForm(id) {
+  const c = id ? catById(id) : null;
+  C = { id: c ? c.id : null, version: c ? c.version : null, name: c ? c.name : '', color: c ? c.color : PALETTE.find(p => !S.d.categories.some(x => x.color === p)) || PALETTE[0],
+    mode: c ? c.mode : 'equal', flexible: c ? c.flexible : false, parts: partsState(c ? JSON.parse(c.partsJson || '[]') : [{ m: 'L', resp: 'L' }, { m: 'M', resp: 'M' }]), archived: c ? c.archived : false };
+  const used = c ? exps().filter(e => e.categoryId === c.id).length : 0;
+  openSheet(`${head(c ? 'Категория' : 'Новая категория')}
+    <div class="field"><label for="c-name">Название</label><input class="inp" id="c-name" data-autofocus maxlength="60" value="${esc(C.name)}" placeholder="Например, Подарки"></div>
+    <div class="field"><span class="lab">Цвет</span><div class="swatches" id="c-colors"></div></div>
+    <div id="c-rule" class="field"></div>
+    <div class="note">Новое правило применится только к новым расходам. Уже внесённые операции сохранят своё распределение.</div>
+    <div id="c-msg"></div>
+    <button class="save" id="c-save">${c ? 'Сохранить категорию' : 'Создать категорию'}</button>
+    ${c ? `<div class="actions"><button class="btn ghost" data-carch="${c.archived ? '0' : '1'}">${c.archived ? 'Вернуть из архива' : 'В архив'}</button>${used ? '' : '<button class="btn ghost" data-cdel>Удалить</button>'}</div>
+      <div class="hint">${used ? `В категории ${used} ${plural(used, 'операция', 'операции', 'операций')}, поэтому её можно только отправить в архив: история сохранится.` : 'В категории нет операций, её можно удалить.'}</div><div id="d-extra"></div>` : ''}`, 'Категория');
+  drawCategory();
+}
+function drawCategory() {
+  sheetEl.querySelector('#c-colors').innerHTML = PALETTE.map(p => `<button class="sw" data-ccolor="${p}" aria-pressed="${C.color.toUpperCase() === p}" style="background:${p}" aria-label="Цвет ${p}"></button>`).join('') +
+    `<input type="color" id="c-custom" value="${esc(C.color)}" aria-label="Свой цвет">`;
+  const ms = S.d.members.filter(m => !m.archived || C.parts[m.id] && C.parts[m.id].on);
+  let check = '';
+  const on = ms.filter(m => C.parts[m.id] && C.parts[m.id].on);
+  if (C.mode === 'percent') { const t = on.reduce((a, m) => a + (parseFloat(String(C.parts[m.id].bp).replace(',', '.')) || 0), 0); check = `Распределено ${String(Math.round(t * 100) / 100).replace('.', ',')}% из 100%`; }
+  sheetEl.querySelector('#c-rule').innerHTML = `<span class="lab">Как делить расходы</span>
+    <div class="seg">${[['equal', 'Поровну'], ['percent', 'Проценты'], ['fixed', 'Суммы'], ['personal', 'Личная']].map(([k, l]) => `<button data-cmode="${k}" aria-pressed="${C.mode === k}">${l}</button>`).join('')}</div>
+    ${C.mode === 'personal' ? '<span class="hint">В каждой покупке выбирается, чья она: Лауры или мамы. Покупка целиком относится на этого человека.</span>' : `
+    ${C.mode === 'equal' ? `<label class="check"><input type="checkbox" id="c-flex" ${C.flexible ? 'checked' : ''}> Гибкая: количество человек выбирается в каждой операции</label>` : ''}
+    ${C.mode === 'fixed' ? '<span class="hint">Фиксированные суммы подставятся в расход. Если сумма расхода другая, доли нужно будет поправить в самой операции.</span>' : ''}
+    ${ms.map(m => { const p = C.parts[m.id]; return `<div class="prow"><label><input type="checkbox" data-con="${m.id}" ${p.on ? 'checked' : ''}> ${esc(m.name)}</label>
+      ${C.mode === 'equal' ? '<span></span>' : `<input class="inp num" data-cval="${m.id}" inputmode="decimal" placeholder="${C.mode === 'percent' ? '%' : '₽'}" value="${esc(C.mode === 'percent' ? p.bp : p.kop)}" ${p.on ? '' : 'disabled'}>`}
+      <select class="inp" data-cresp="${m.id}" ${p.on ? '' : 'disabled'}><option value="L" ${p.resp === 'L' ? 'selected' : ''}>платит Лаура</option><option value="M" ${p.resp === 'M' ? 'selected' : ''}>платит мама</option></select></div>`; }).join('')}
+    ${check ? `<span class="hint">${check}</span>` : ''}`}`;
+}
+function syncCategory() {
+  C.name = sheetEl.querySelector('#c-name').value;
+  const flex = sheetEl.querySelector('#c-flex'); if (flex) C.flexible = flex.checked;
+  sheetEl.querySelectorAll('[data-cval]').forEach(i => { const p = C.parts[i.dataset.cval]; if (C.mode === 'percent') p.bp = i.value; else p.kop = i.value; });
+  sheetEl.querySelectorAll('[data-cresp]').forEach(i => C.parts[i.dataset.cresp].resp = i.value);
+}
+async function saveCategory(btn) {
+  syncCategory();
+  const msg = sheetEl.querySelector('#c-msg');
+  const parts = C.mode === 'personal' ? [] : Object.keys(C.parts).filter(k => C.parts[k].on).map(k => {
+    const p = C.parts[k], o = { m: k, resp: p.resp };
+    if (C.mode === 'percent') o.bp = Math.round((parseFloat(String(p.bp).replace(',', '.')) || 0) * 100);
+    if (C.mode === 'fixed') o.kop = parseRub(p.kop) || 0;
+    return o;
+  });
+  try {
+    const res = await run(btn, () => api('api_saveCategory', { id: C.id, version: C.version, name: C.name, color: C.color, mode: C.mode, flexible: C.flexible, parts }));
+    closeSheet(); setData(res.data); toast('Категория сохранена');
+  } catch (e) { msg.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+/* ---------- Участник ---------- */
+function openMemberForm(id) {
+  const m = id ? member(id) : null;
+  openSheet(`${head(m ? 'Участник' : 'Новый участник')}
+    <div class="field"><label for="m-name">Имя</label><input class="inp" id="m-name" data-autofocus maxlength="40" value="${esc(m ? m.name : '')}"></div>
+    ${m ? `<label class="check"><input type="checkbox" id="m-arch" ${m.archived ? 'checked' : ''}> В архиве: не предлагать в новых расходах</label>` : ''}
+    <div class="note">Член семьи не платит сам: его доли по умолчанию оплачивает мама. Это можно изменить в правиле категории или в конкретной операции.</div>
+    <div id="m-msg"></div><button class="save" id="m-save" data-mid="${m ? m.id : ''}">Сохранить</button>`, 'Участник');
+}
+async function saveMember(btn) {
+  const id = btn.dataset.mid, arch = sheetEl.querySelector('#m-arch');
+  try {
+    const res = await run(btn, () => api('api_saveMember', { id: id || null, name: sheetEl.querySelector('#m-name').value, archived: arch ? arch.checked : undefined }));
+    closeSheet(); setData(res.data); toast('Сохранено');
+  } catch (e) { sheetEl.querySelector('#m-msg').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+/* ================= События ================= */
+document.addEventListener('click', async ev => {
+  const t = ev.target;
+  if (t.matches('[data-scrim]') || t.closest('[data-close]')) return closeSheet();
+  const q = s => t.closest(s);
+  let el;
+  if ((el = q('[data-go]'))) { S.view = el.dataset.go; closeSheet(); render(); window.scrollTo(0, 0); return; }
+  if ((el = q('[data-act]'))) {
+    const a = el.dataset.act;
+    if (a === 'add-expense') return openExpenseForm();
+    if (a === 'add-transfer') return openTransferForm();
+    if (a === 'add-category') return openCategoryForm();
+    if (a === 'add-member') return openMemberForm();
+    if (a === 'prev-month') { S.ym = prevYm(S.ym); return render(); }
+    if (a === 'next-month') { S.ym = nextYm(S.ym); return render(); }
+    if (a === 'prev-year') { S.year--; return render(); }
+    if (a === 'next-year') { S.year++; return render(); }
+    if (a === 'reload') return reload(true);
+    if (a === 'more') return openSheet(`${head('Ещё')}<div class="list">${[['categories', 'Категории'], ['settings', 'Настройки']].map(([k, l]) => `<div class="row"><button class="link" style="font-size:16px" data-go="${k}">${l}</button></div>`).join('')}</div>`, 'Меню');
+    if (a === 'load-history') { const box = document.getElementById('hist'); box.innerHTML = '<div class="hint">Загружаем…</div>'; try { const h = await api('api_history', '', 60); box.innerHTML = `<div class="hist">${h.map(histLine).join('') || '<div class="hint">Изменений пока нет</div>'}</div>`; } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; } return; }
+    if (a === 'backup') { const box = document.getElementById('backup-res'); el.disabled = true; el.textContent = 'Создаём копию…'; try { const r = await api('api_backupNow'); setData(r.data); toast('Копия создана'); } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; el.disabled = false; el.textContent = 'Создать копию сейчас'; } return; }
+  }
+  if ((el = q('[data-export]'))) {
+    const box = document.getElementById('export-res'); box.innerHTML = '<div class="hint">Готовим файл, это занимает до 20 секунд…</div>';
+    try { const r = await api('api_exportXlsx', el.dataset.export); box.innerHTML = `<div>Готово: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.name)}</a></div>`; }
+    catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    return;
+  }
+  if ((el = q('[data-scope]'))) { S.scope = el.dataset.scope; return render(); }
+  if ((el = q('[data-goto-month]'))) { S.ym = ymOf(el.dataset.gotoMonth + '-01'); S.scope = 'month'; return render(); }
+  if ((el = q('[data-open-exp]'))) return openExpenseDetails(el.dataset.openExp);
+  if ((el = q('[data-open-tr]'))) return openTransferForm(el.dataset.openTr);
+  if ((el = q('[data-open-cat]'))) return openCategoryForm(el.dataset.openCat);
+  if ((el = q('[data-open-member]'))) return openMemberForm(el.dataset.openMember);
+  if (!sheetEl) return;
+  // Форма расхода
+  if ((el = q('[data-xcat]'))) { syncExpenseFields(); applyCategory(catById(el.dataset.xcat)); drawExpenseStatic(); drawDist(); return drawPreview(); }
+  if ((el = q('[data-xpaid]'))) { syncExpenseFields(); F.paidBy = el.dataset.xpaid; drawExpenseStatic(); return drawPreview(); }
+  if ((el = q('[data-xowner]'))) { syncExpenseFields(); F.owner = el.dataset.xowner; drawDist(); return drawPreview(); }
+  if ((el = q('[data-xcount]'))) { syncExpenseFields(); const n = +el.dataset.xcount; activeMembers().forEach((m, i) => { if (!F.parts[m.id]) F.parts[m.id] = { on: false, bp: '', kop: '', resp: m.id === 'L' ? 'L' : 'M' }; F.parts[m.id].on = i < n; }); drawDist(); return drawPreview(); }
+  if ((el = q('[data-xmode]'))) { syncExpenseFields(); F.mode = el.dataset.xmode; drawDist(); return drawPreview(); }
+  if ((el = q('[data-xact]'))) {
+    const a = el.dataset.xact;
+    if (a === 'force') { F.force = true; return saveExpense(sheetEl.querySelector('#x-save')); }
+    syncExpenseFields();
+    if (a === 'custom') { F.custom = true; }
+    if (a === 'reset') { applyCategory(catById(F.categoryId)); }
+    if (a === 'evenly') {
+      const on = distMembers().filter(m => F.parts[m.id].on);
+      if (F.mode === 'percent') { const v = allocate_(10000, on.map(() => 1)); on.forEach((m, i) => F.parts[m.id].bp = String(v[i] / 100).replace('.', ',')); }
+      if (F.mode === 'fixed') { const amt = parseRub(F.amount); if (!isNaN(amt)) { const v = allocate_(amt, on.map(() => 1)); on.forEach((m, i) => F.parts[m.id].kop = kopInput(v[i])); } }
+    }
+    drawDist(); return drawPreview();
+  }
+  if ((el = q('#x-save'))) return saveExpense(el);
+  if ((el = q('[data-xedit]'))) return openExpenseForm(el.dataset.xedit);
+  if ((el = q('[data-xdel]'))) return askDeleteExpense(el.dataset.xdel);
+  if ((el = q('[data-xdelok]'))) return deleteExpense(el.dataset.xdelok, el);
+  if ((el = q('[data-xdelno]'))) { sheetEl.querySelector('#d-extra').innerHTML = ''; return; }
+  if ((el = q('[data-xhist]'))) return showEntityHistory(el.dataset.xhist);
+  // Перевод
+  if ((el = q('[data-tfrom]'))) { T.amount = sheetEl.querySelector('#t-amount').value; T.date = sheetEl.querySelector('#t-date').value; T.from = el.dataset.tfrom; return drawTransfer(); }
+  if ((el = q('#t-save'))) return saveTransfer(el);
+  if ((el = q('[data-tdel]'))) return askDeleteTransfer(el.dataset.tdel);
+  if ((el = q('[data-tdelok]'))) return deleteTransfer(el.dataset.tdelok, el);
+  // Категория
+  if ((el = q('[data-ccolor]'))) { syncCategory(); C.color = el.dataset.ccolor; return drawCategory(); }
+  if ((el = q('[data-cmode]'))) { syncCategory(); C.mode = el.dataset.cmode; if (C.mode !== 'equal') C.flexible = false; return drawCategory(); }
+  if ((el = q('#c-save'))) return saveCategory(el);
+  if ((el = q('[data-carch]'))) { try { const r = await run(el, () => api('api_archiveCategory', C.id, el.dataset.carch === '1')); closeSheet(); setData(r.data); toast(el.dataset.carch === '1' ? 'Категория в архиве' : 'Категория возвращена'); } catch (e) { sheetEl.querySelector('#c-msg').innerHTML = `<div class="err">${esc(e.message)}</div>`; } return; }
+  if ((el = q('[data-cdel]'))) { sheetEl.querySelector('#d-extra').innerHTML = `<div class="warnbox"><span>Удалить категорию «${esc(C.name)}» насовсем?</span><div class="actions"><button class="btn small danger" data-cdelok>Удалить</button><button class="btn small ghost" data-xdelno>Отмена</button></div></div>`; return; }
+  if ((el = q('[data-cdelok]'))) { try { const r = await run(el, () => api('api_deleteCategory', C.id)); closeSheet(); setData(r.data); toast('Категория удалена'); } catch (e) { sheetEl.querySelector('#d-extra').innerHTML = `<div class="err">${esc(e.message)}</div>`; } return; }
+  if ((el = q('#m-save'))) return saveMember(el);
+});
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (sheetEl && sheetEl.contains(t)) {
+    if (sheetEl.querySelector('#x-amount')) {
+      syncExpenseFields();
+      if (t.dataset.xon) { F.parts[t.dataset.xon].on = t.checked; drawDist(); }
+      else if (t.dataset.xval || t.id === 'x-amount') { const c = sheetEl.querySelector('#x-check'); if (c) { drawDist(); const n = sheetEl.querySelector(t.dataset.xval ? `[data-xval="${t.dataset.xval}"]` : '#x-amount'); if (n && n !== t) { n.focus(); const v = n.value.length; try { n.setSelectionRange(v, v); } catch (e) {} } } }
+      return drawPreview();
+    }
+    if (sheetEl.querySelector('#t-amount')) { T.amount = sheetEl.querySelector('#t-amount').value; T.date = sheetEl.querySelector('#t-date').value; return drawTransfer(); }
+    if (sheetEl.querySelector('#c-name')) {
+      syncCategory();
+      if (t.dataset.con) { C.parts[t.dataset.con].on = t.checked; drawCategory(); }
+      else if (t.id === 'c-custom') { C.color = t.value.toUpperCase(); }
+      else if (t.dataset.cval && C.mode === 'percent') { drawCategory(); const n = sheetEl.querySelector(`[data-cval="${t.dataset.cval}"]`); n.focus(); const v = n.value.length; try { n.setSelectionRange(v, v); } catch (e) {} }
+    }
+    return;
+  }
+  const map = { 'f-month': 'month', 'f-cat': 'cat', 'f-payer': 'payer', 'f-sort': 'sort', 'f-min': 'min', 'f-max': 'max', 'f-q': 'q' };
+  if (map[t.id]) { S.f[map[t.id]] = t.value; const box = document.getElementById('exp-list'); if (box) box.innerHTML = expenseList(); }
+});
+document.addEventListener('change', ev => { if (['f-month', 'f-cat', 'f-payer', 'f-sort'].includes(ev.target.id)) ev.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && sheetEl) closeSheet(); });
+
+/* ================= Отрисовка и синхронизация ================= */
+let resizeT;
+window.addEventListener('resize', () => { if (S.view !== 'analytics') return; clearTimeout(resizeT); resizeT = setTimeout(render, 200); });
+function render() {
+  if (!S.d) return;
+  renderNav();
+  const v = { overview: viewOverview, expenses: viewExpenses, settle: viewSettle, analytics: viewAnalytics, categories: viewCategories, settings: viewSettings }[S.view];
+  document.getElementById('view').innerHTML = v();
+}
+async function reload(quiet) {
+  try { setData(await api('api_bootstrap')); if (quiet) toast('Данные обновлены'); }
+  catch (e) { toast(e.message); }
+}
+async function checkUpdates() {
+  if (!S.d || !TOKEN || document.hidden) return;
+  try {
+    const rev = await api('api_rev');
+    if (rev !== S.d.rev) {
+      if (sheetEl) { S.newData = true; onSheetClose = () => reload(true); }
+      else reload(true);
+    }
+  } catch (e) { /* сеть пропала — попробуем в следующий раз */ }
+}
+setInterval(checkUpdates, 25000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdates(); });
+function start() {
+  document.getElementById('view').innerHTML = '<div class="loading">Загружаем данные…</div>';
+  api('api_bootstrap').then(setData).catch(e => {
+    if (!TOKEN) return;
+    document.getElementById('view').innerHTML = `<div class="loading"><div><h2 style="font-family:var(--display);color:var(--fg)">Не удалось открыть бюджет</h2><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">Попробовать снова</button></div></div>`;
+  });
+}
+if (TOKEN) start(); else showLogin();
+</script>
+</body>
+</html>
